@@ -118,6 +118,7 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
           key: ${{ matrix.platform.target }}
+          cache-all-crates: true
 
       # macOS 特定设置
       - name: Install macOS dependencies
@@ -142,6 +143,18 @@ jobs:
           rustup target add aarch64-apple-ios-sim
           # 确保 Xcode 已安装
           xcodebuild -version
+      
+      - name: Install Tauri CLI (iOS)
+        if: matrix.platform.target == 'aarch64-apple-ios'
+        run: |
+          # 检查是否已安装 tauri-cli
+          if ! cargo tauri --version 2>/dev/null; then
+            echo "Installing Tauri CLI..."
+            cargo install tauri-cli --version "^2.0" --locked
+          else
+            echo "Tauri CLI already installed"
+            cargo tauri --version
+          fi
 
       - name: Install frontend dependencies
         run: bun install --frozen-lockfile
@@ -175,11 +188,16 @@ jobs:
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          cd src-tauri
+          # 验证 Tauri CLI 已安装
+          cargo tauri --version
+          
           # 初始化 iOS 项目 (如果还没有)
-          cargo tauri ios init || true
+          echo "Initializing iOS project..."
+          cargo tauri ios init --ci || echo "iOS project already initialized or init failed, continuing..."
+          
           # 构建 iOS 应用
-          cargo tauri ios build --target aarch64-apple-ios
+          echo "Building iOS application..."
+          cargo tauri ios build --target aarch64-apple-ios --verbose
 
       # 上传构建产物
       - name: Upload artifacts (macOS)
