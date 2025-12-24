@@ -412,6 +412,89 @@ fn is_core_running(state: &MihomoState) -> bool {
     false
 }
 
+// Windows and Linux versions of is_core_running
+#[cfg(not(target_os = "macos"))]
+fn is_core_running(state: &MihomoState) -> bool {
+    // If we explicitly marked the core as stopped, trust it
+    if let Ok(stopped) = state.manually_stopped.lock() {
+        if *stopped {
+            println!("[is_core_running] manually_stopped=true, returning false");
+            return false;
+        }
+    }
+
+    // Check 1: Child process
+    if let Ok(mut process_lock) = state.process.lock() {
+        if let Some(child) = process_lock.as_mut() {
+            match child.try_wait() {
+                Ok(None) => {
+                    println!("[is_core_running] Child process is still running");
+                    return true;
+                }
+                Ok(Some(status)) => {
+                    println!("[is_core_running] Child process exited with status: {}", status);
+                    *process_lock = None;
+                }
+                Err(e) => {
+                    println!("[is_core_running] Error checking child process: {}", e);
+                }
+            }
+        }
+    }
+    
+    // Check 2: Port check
+    if let Ok(port_lock) = state.api_port.lock() {
+        let port = *port_lock;
+        if is_port_in_use(port) {
+            println!("[is_core_running] Port {} is in use", port);
+            return true;
+        } else {
+            println!("[is_core_running] Port {} is not in use", port);
+        }
+    }
+    
+    println!("[is_core_running] All checks failed, returning false");
+    false
+}
+
+// Windows and Linux versions of cleanup_port
+#[cfg(target_os = "windows")]
+fn cleanup_port(_port: u16) {
+    // On Windows, we don't have a simple way to kill processes by port
+    // The port will be freed when the process exits
+    // This is a no-op for now
+}
+
+#[cfg(all(target_os = "linux", not(target_os = "macos")))]
+fn cleanup_port(port: u16) {
+    if !is_port_in_use(port) {
+        return;
+    }
+
+    let current_pid = std::process::id();
+    
+    // Use lsof on Linux (if available)
+    let output = Command::new("lsof")
+        .args(["-t", "-i", &format!(":{}", port)])
+        .output();
+
+    if let Ok(out) = output {
+        let pid_str = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        for pid in pid_str.lines() {
+            if let Ok(p) = pid.parse::<u32>() {
+                if p == current_pid {
+                    continue;
+                }
+                
+                let _ = Command::new("kill")
+                    .arg("-TERM")
+                    .arg(p.to_string())
+                    .output();
+            }
+        }
+    }
+}
+
 fn parse_external_controller(value: &str) -> Option<(String, u16)> {
     let trimmed = value.trim();
     if trimmed.is_empty() {
