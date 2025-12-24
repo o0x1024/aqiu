@@ -1,0 +1,26 @@
+[package]
+name = "aqiu-service"
+version = "0.1.0"
+edition = "2021"
+description = "AQiu Service - Background daemon for managing Mihomo core"
+authors = ["AQiu Team"]
+
+[[bin]]
+name = "aqiu-service"
+path = "src/main.rs"
+
+[dependencies]
+aqiu-service-ipc = { path = "../aqiu-service-ipc", features = ["server"] }
+tokio = { version = "1", features = ["full", "process", "signal"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+async-trait = "0.1"
+chrono = "0.4"
+parking_lot = "0.12"
+dirs = "5"
+anyhow = "1"
+

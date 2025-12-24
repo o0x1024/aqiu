@@ -1,0 +1,34 @@
+# AQiu - Default Config
+# This is a minimal Mihomo configuration for getting started
+# Place this file at %LOCALAPPDATA%\aqiu\config\config.yaml
+
+# Basic settings
+mixed-port: 27890
+allow-lan: false
+mode: rule
+log-level: info
+
+# External controller for API
+external-controller: 127.0.0.1:29090
+
+# DNS settings
+dns:
+  enable: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+
+# Proxy Groups (empty by default - add your own proxies)
+proxy-groups:
+  - name: PROXY
+    type: select
+    proxies:
+      - DIRECT
+      - REJECT
+
+# Rules
+rules:
+  - GEOIP,CN,DIRECT
+  - MATCH,PROXY

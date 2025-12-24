@@ -1,0 +1,152 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: aqiu --default, light, dark --prefersdark, corporate, business, nord, emerald,
+    autumn, forest, winter, night, dim, coffee, sunset, luxury, black, silk, lofi, wireframe;
+}
+
+@plugin "daisyui/theme" {
+  name: "aqiu";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-primary: #2f6cff;
+  --color-primary-content: #ffffff;
+  --color-secondary: #3ab0a2;
+  --color-secondary-content: #ffffff;
+  --color-accent: #f5a524;
+  --color-accent-content: #1f1b12;
+  --color-neutral: #2b2f3a;
+  --color-neutral-content: #f5f7fb;
+  --color-base-100: #f6f7fb;
+  --color-base-200: #eceff5;
+  --color-base-300: #e0e5ee;
+  --color-base-content: #1c2333;
+  --color-info: #4f9dff;
+  --color-info-content: #ffffff;
+  --color-success: #2dbe7f;
+  --color-success-content: #ffffff;
+  --color-warning: #f5a524;
+  --color-warning-content: #1f1b12;
+  --color-error: #e24a4a;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 0.75rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+:root {
+  --aqiu-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+  --aqiu-shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.06);
+  --aqiu-border: color-mix(in oklch, var(--color-base-content), transparent 88%);
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklch, var(--color-base-content), transparent 80%);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklch, var(--color-base-content), transparent 70%);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-from-bottom {
+  from { transform: translateY(1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes zoom-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-in {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+.fade-in { animation-name: fade-in; }
+.slide-in-from-bottom-4 { animation-name: slide-in-from-bottom; }
+.zoom-in { animation-name: zoom-in; }
+
+/* Custom scrollbar for tables */
+.table-sm :where(th, td) {
+  padding: 0.5rem 1rem;
+}
+
+/* Unified component elevation */
+.card,
+.stats,
+.alert,
+.navbar,
+.drawer-side > div,
+.table,
+.overflow-x-auto {
+  border-color: var(--aqiu-border);
+  box-shadow: var(--aqiu-shadow);
+}
+
+.btn,
+.input,
+.select,
+.textarea {
+  border-color: var(--aqiu-border);
+  box-shadow: var(--aqiu-shadow-soft);
+}
+
+.btn {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.card-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.table :where(th) {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.table :where(td) {
+  font-weight: 500;
+}
+
+/* Menu active state refinement */
+.menu li > a.active {
+  font-weight: 700;
+}
+
+/* Stat value refinement */
+.stat-value {
+  font-weight: 900;
+  letter-spacing: -0.025em;
+}
