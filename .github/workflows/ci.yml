@@ -164,7 +164,7 @@ jobs:
 
       # 构建 Tauri 应用 (带签名 - 仅当证书存在时)
       - name: Build Tauri app (macOS/Windows) - Signed
-        if: matrix.platform.target != 'aarch64-apple-ios' && secrets.APPLE_CERTIFICATE != ''
+        if: ${{ matrix.platform.target != 'aarch64-apple-ios' && secrets.APPLE_CERTIFICATE != '' }}
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -181,7 +181,7 @@ jobs:
 
       # 构建 Tauri 应用 (无签名 - 用于测试或当证书不存在时)
       - name: Build Tauri app (macOS/Windows) - Unsigned
-        if: matrix.platform.target != 'aarch64-apple-ios' && secrets.APPLE_CERTIFICATE == ''
+        if: ${{ matrix.platform.target != 'aarch64-apple-ios' && secrets.APPLE_CERTIFICATE == '' }}
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
