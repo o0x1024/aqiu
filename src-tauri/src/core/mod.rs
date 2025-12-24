@@ -3,5 +3,6 @@
 
 include!("base.rs");
 include!("macos_and_lifecycle.rs");
+include!("windows.rs");
 include!("tun.rs");
 include!("proxy_and_mode.rs");

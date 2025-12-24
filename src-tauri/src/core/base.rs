@@ -178,7 +178,7 @@ const PRIVILEGED_HELPER_PATH: &str = "/Library/PrivilegedHelperTools/aqiu-mihomo
 // We now write a stable runtime config under `get_config_dir()` and do not need a temp guard.
 
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
+#[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
 fn resolve_config_path(state: &MihomoState) -> PathBuf {
     if let Ok(lock) = state.config_path.lock() {
         if let Some(path) = lock.as_ref() {
@@ -459,10 +459,9 @@ fn is_core_running(state: &MihomoState) -> bool {
 
 // Windows and Linux versions of cleanup_port
 #[cfg(target_os = "windows")]
-fn cleanup_port(_port: u16) {
-    // On Windows, we don't have a simple way to kill processes by port
-    // The port will be freed when the process exits
-    // This is a no-op for now
+fn cleanup_port(port: u16) {
+    // Use the Windows-specific implementation
+    let _ = cleanup_port_windows(port);
 }
 
 #[cfg(all(target_os = "linux", not(target_os = "macos")))]

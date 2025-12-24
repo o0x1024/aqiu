@@ -1475,57 +1475,26 @@ pub async fn set_system_proxy(app: tauri::AppHandle, enable: bool, port: Option<
 
     #[cfg(target_os = "windows")]
     {
-        use std::process::Command;
-
-        if enable {
-            // Enable proxy
-            Command::new("reg")
-                .args([
-                    "add",
-                    r"HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings",
-                    "/v",
-                    "ProxyEnable",
-                    "/t",
-                    "REG_DWORD",
-                    "/d",
-                    "1",
-                    "/f",
-                ])
-                .output()
-                .map_err(|e| e.to_string())?;
-
-            // Set proxy server
-            Command::new("reg")
-                .args([
-                    "add",
-                    r"HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings",
-                    "/v",
-                    "ProxyServer",
-                    "/t",
-                    "REG_SZ",
-                    "/d",
-                    &proxy_server,
-                    "/f",
-                ])
-                .output()
-                .map_err(|e| e.to_string())?;
+        // Get proxy configuration from config file
+        let config_path = resolve_config_path(state.inner());
+        let (http_port, socks_port) = if config_path.exists() {
+            let content = std::fs::read_to_string(&config_path).map_err(|e| e.to_string())?;
+            let yaml: serde_yaml::Value = serde_yaml::from_str(&content).map_err(|e| e.to_string())?;
+            
+            let mixed_port = yaml.get("mixed-port").and_then(|v| v.as_u64()).map(|v| v as u16);
+            let http = yaml.get("port").and_then(|v| v.as_u64()).map(|v| v as u16);
+            let socks = yaml.get("socks-port").and_then(|v| v.as_u64()).map(|v| v as u16);
+            
+            let effective_http = mixed_port.or(http).or(Some(proxy_port)).unwrap();
+            let effective_socks = mixed_port.or(socks).or(Some(proxy_port)).unwrap();
+            
+            (effective_http, effective_socks)
         } else {
-            // Disable proxy
-            Command::new("reg")
-                .args([
-                    "add",
-                    r"HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings",
-                    "/v",
-                    "ProxyEnable",
-                    "/t",
-                    "REG_DWORD",
-                    "/d",
-                    "0",
-                    "/f",
-                ])
-                .output()
-                .map_err(|e| e.to_string())?;
-        }
+            (proxy_port, proxy_port)
+        };
+        
+        // Use the new Windows implementation
+        set_system_proxy_windows(enable, http_port, socks_port).await?;
 
         let _ = app.emit("system-proxy-changed", SystemProxyChangedEvent { enabled: enable });
         Ok(())
@@ -1975,20 +1944,7 @@ pub async fn download_profile(url: String) -> Result<String, String> {
 pub fn get_system_proxy_status() -> Result<bool, String> {
     #[cfg(target_os = "windows")]
     {
-        use std::process::Command;
-
-        let output = Command::new("reg")
-            .args([
-                "query",
-                r"HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings",
-                "/v",
-                "ProxyEnable",
-            ])
-            .output()
-            .map_err(|e| e.to_string())?;
-
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        Ok(stdout.contains("0x1"))
+        get_system_proxy_status_windows()
     }
 
     #[cfg(target_os = "macos")]

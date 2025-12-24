@@ -37,5 +37,17 @@ tauri-plugin-os = "2"
 arboard = "3"
 tauri-plugin-clipboard-manager = "2"
 # IPC for service communication
-aqiu-service-ipc = { path = "../crates/aqiu-service-ipc", features = ["client"] }
+aqiu-service-ipc = { path = "../crates/aqiu-service-ipc", features = [
+    "client",
+] }
 tauri-plugin-shell = "2"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.52"
+winapi = { version = "0.3", features = [
+    "wininet",
+    "winsock2",
+    "ws2def",
+    "ws2ipdef",
+    "ws2tcpip",
+] }

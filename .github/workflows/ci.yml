@@ -80,17 +80,13 @@ jobs:
             bundles: dmg,app
             rust_target: aarch64-apple-darwin
 
-          - name: Windows (x64)
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-            bundles: msi,nsis
-            rust_target: x86_64-pc-windows-msvc
+          # Windows 编译暂时注释
+          # - name: Windows (x64)
+          #   os: windows-latest
+          #   target: x86_64-pc-windows-msvc
+          #   bundles: msi,nsis
+          #   rust_target: x86_64-pc-windows-msvc
 
-          - name: iOS
-            os: macos-latest
-            target: aarch64-apple-ios
-            bundles: ios
-            rust_target: aarch64-apple-ios
 
     runs-on: ${{ matrix.platform.os }}
 
@@ -127,34 +123,14 @@ jobs:
           # 安装 Xcode Command Line Tools (如果需要)
           xcode-select --install 2>/dev/null || true
 
-      # Windows 特定设置
-      - name: Install Windows dependencies
-        if: matrix.platform.os == 'windows-latest'
-        run: |
-          # 安装 WebView2 (Tauri 需要)
-          echo "WebView2 will be installed via Tauri"
+      # Windows 特定设置 (暂时注释)
+      # - name: Install Windows dependencies
+      #   if: matrix.platform.os == 'windows-latest'
+      #   run: |
+      #     # 安装 WebView2 (Tauri 需要)
+      #     echo "WebView2 will be installed via Tauri"
 
-      # iOS 特定设置
-      - name: Setup iOS development environment
-        if: matrix.platform.target == 'aarch64-apple-ios'
-        run: |
-          # 安装 iOS 开发工具
-          rustup target add aarch64-apple-ios
-          rustup target add aarch64-apple-ios-sim
-          # 确保 Xcode 已安装
-          xcodebuild -version
-      
-      - name: Install Tauri CLI (iOS)
-        if: matrix.platform.target == 'aarch64-apple-ios'
-        run: |
-          # 检查是否已安装 tauri-cli
-          if ! cargo tauri --version 2>/dev/null; then
-            echo "Installing Tauri CLI..."
-            cargo install tauri-cli --version "^2.0" --locked
-          else
-            echo "Tauri CLI already installed"
-            cargo tauri --version
-          fi
+
 
       - name: Install frontend dependencies
         run: bun install --frozen-lockfile
@@ -163,33 +139,14 @@ jobs:
         run: bun run build
 
       # 构建 Tauri 应用
-      - name: Build Tauri app (macOS/Windows)
-        if: matrix.platform.target != 'aarch64-apple-ios'
+      - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: --target ${{ matrix.platform.rust_target }} --bundles ${{ matrix.platform.bundles }}
 
-      # iOS 构建 (需要特殊处理)
-      - name: Build Tauri app (iOS)
-        if: matrix.platform.target == 'aarch64-apple-ios'
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          # 验证 Tauri CLI 已安装
-          cargo tauri --version
-          
-          # 初始化 iOS 项目 (如果还没有)
-          echo "Initializing iOS project..."
-          cargo tauri ios init --ci || echo "iOS project already initialized or init failed, continuing..."
-          
-          # 构建 iOS 应用
-          echo "Building iOS application..."
-          cargo tauri ios build --target aarch64-apple-ios --verbose
+
 
       # 上传构建产物
       - name: Upload artifacts (macOS)
@@ -202,25 +159,18 @@ jobs:
             src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
           if-no-files-found: warn
 
-      - name: Upload artifacts (Windows)
-        if: matrix.platform.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: aqiu-windows-x64
-          path: |
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
-          if-no-files-found: warn
+      # Windows 产物上传 (暂时注释)
+      # - name: Upload artifacts (Windows)
+      #   if: matrix.platform.os == 'windows-latest'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: aqiu-windows-x64
+      #     path: |
+      #       src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+      #       src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+      #     if-no-files-found: warn
 
-      - name: Upload artifacts (iOS)
-        if: matrix.platform.target == 'aarch64-apple-ios'
-        uses: actions/upload-artifact@v4
-        with:
-          name: aqiu-ios-aarch64
-          path: |
-            src-tauri/gen/apple/build/**/*.ipa
-            src-tauri/gen/apple/build/**/*.app
-          if-no-files-found: warn
+
 
   # 发布 (仅在打 tag 时)
   release:
@@ -250,8 +200,8 @@ jobs:
           files: |
             artifacts/**/*.dmg
             artifacts/**/*.app
-            artifacts/**/*.msi
-            artifacts/**/*.exe
-            artifacts/**/*.ipa
+            # Windows 产物暂时注释
+            # artifacts/**/*.msi
+            # artifacts/**/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

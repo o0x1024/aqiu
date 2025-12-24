@@ -18,3 +18,12 @@ thiserror = "1"
 tracing = "0.1"
 async-trait = "0.1"
 
+[target.'cfg(windows)'.dependencies]
+tokio = { version = "1", features = [
+    "net",
+    "io-util",
+    "sync",
+    "time",
+    "rt",
+    "io-std",
+] }
