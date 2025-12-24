@@ -25,3 +25,4 @@ target
 src-tauri/target
 *.p12
 prototypes
+AGENTS.md
