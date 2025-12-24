@@ -162,26 +162,9 @@ jobs:
       - name: Build frontend
         run: bun run build
 
-      # 构建 Tauri 应用 (带签名 - 仅当证书存在时)
-      - name: Build Tauri app (macOS/Windows) - Signed
-        if: ${{ matrix.platform.target != 'aarch64-apple-ios' && secrets.APPLE_CERTIFICATE != '' }}
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        with:
-          args: --target ${{ matrix.platform.rust_target }} --bundles ${{ matrix.platform.bundles }}
-
-      # 构建 Tauri 应用 (无签名 - 用于测试或当证书不存在时)
-      - name: Build Tauri app (macOS/Windows) - Unsigned
-        if: ${{ matrix.platform.target != 'aarch64-apple-ios' && secrets.APPLE_CERTIFICATE == '' }}
+      # 构建 Tauri 应用
+      - name: Build Tauri app (macOS/Windows)
+        if: matrix.platform.target != 'aarch64-apple-ios'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
