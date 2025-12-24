@@ -12,6 +12,9 @@ mod client;
 #[cfg(feature = "server")]
 mod server;
 
+#[cfg(all(feature = "server", windows))]
+mod server_windows;
+
 pub use protocol::*;
 pub use error::*;
 
@@ -20,6 +23,9 @@ pub use client::*;
 
 #[cfg(feature = "server")]
 pub use server::*;
+
+#[cfg(all(feature = "server", windows))]
+pub use server_windows::*;
 
 /// IPC socket path
 #[cfg(target_os = "macos")]

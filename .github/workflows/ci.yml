@@ -148,7 +148,14 @@ jobs:
 
 
 
+
       # 上传构建产物
+      - name: List build outputs (macOS)
+        if: matrix.platform.os == 'macos-latest' && matrix.platform.target == 'aarch64-apple-darwin'
+        run: |
+          echo "Listing build directory structure:"
+          find src-tauri/target/aarch64-apple-darwin/release/bundle -type f || echo "Bundle directory not found"
+
       - name: Upload artifacts (macOS)
         if: matrix.platform.os == 'macos-latest' && matrix.platform.target == 'aarch64-apple-darwin'
         uses: actions/upload-artifact@v4
@@ -158,6 +165,7 @@ jobs:
             src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
             src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
           if-no-files-found: warn
+
 
       # Windows 产物上传 (暂时注释)
       # - name: Upload artifacts (Windows)
@@ -188,9 +196,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+        continue-on-error: true
 
       - name: Display structure of downloaded files
-        run: ls -R artifacts
+        run: |
+          if [ -d "artifacts" ]; then
+            echo "Artifacts directory exists"
+            ls -R artifacts
+          else
+            echo "No artifacts directory found"
+            mkdir -p artifacts
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
